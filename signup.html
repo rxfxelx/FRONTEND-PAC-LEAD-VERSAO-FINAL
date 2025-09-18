@@ -132,64 +132,72 @@
   </div>
   <!-- JavaScript -->
   <script>
-    document.getElementById('signup-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-const name = document.getElementById('name').value.trim();
-const email = document.getElementById('email').value.trim();
-const docType = document.querySelector('input[name="docType"]:checked')?.value || 'cpf';
-const cpfInput = document.getElementById('cpf');
-const cnpjInput = document.getElementById('cnpj');
-const cpf = docType === 'cpf' ? onlyDigits(cpfInput.value) : null;
-const cnpj = docType === 'cnpj' ? onlyDigits(cnpjInput.value) : null;
+  document.getElementById('signup-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-// Validação: exatamente um documento
-if (docType === 'cpf') {
-  if (!cpf || cpf.length !== 11){ errorEl.textContent='CPF inválido (11 dígitos).'; errorEl.style.display='block'; return; }
-} else {
-  if (!cnpj || cnpj.length !== 14){ errorEl.textContent='CNPJ inválido (14 dígitos).'; errorEl.style.display='block'; return; }
-}
-const password = document.getElementById('password').value.trim();
-      const errorEl = document.getElementById('signup-error');
-      errorEl.style.display = 'none';
-      try {
-        const response = await fetch(`${API_BASE}/api/auth/signup`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, cpf, cnpj, password })
-        });
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          const msg = data.detail || data.error || 'Erro ao cadastrar.';
-          errorEl.textContent = msg;
-          errorEl.style.display = 'block';
-          return;
-        }
-        // Se o backend retornar token após cadastro, salvar e redirecionar
-        const token = data.token;
-        if (token) {
-          localStorage.setItem('authToken', token);
-          window.location.href = 'index.html';
-        } else {
-          // Caso contrário, direcionar para login com aviso
-          alert('Conta criada com sucesso! Faça login para continuar.');
-          window.location.href = 'login.html';
-        }
-      } catch (err) {
-        console.error(err);
-        errorEl.textContent = 'Erro de conexão. Tente novamente.';
-        errorEl.style.display = 'block';
+    const errorEl = document.getElementById('signup-error');
+    errorEl.style.display = 'none';
+
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim().toLowerCase();
+    const password = document.getElementById('password').value.trim();
+
+    const docType = document.querySelector('input[name="docType"]:checked')?.value || 'cpf';
+    const cpf = docType === 'cpf' ? onlyDigits(document.getElementById('cpf').value) : null;
+    const cnpj = docType === 'cnpj' ? onlyDigits(document.getElementById('cnpj').value) : null;
+
+    // Validação
+    if (docType === 'cpf') {
+      if (!cpf || cpf.length !== 11){ 
+        errorEl.textContent='CPF inválido (11 dígitos).'; 
+        errorEl.style.display='block'; 
+        return; 
       }
-    });
-  
-    // Alternar exibição CPF/CNPJ
-    document.querySelectorAll('input[name="docType"]').forEach(r=>{
-      r.addEventListener('change', (e)=>{
-        const isCPF = e.target.value === 'cpf';
-        document.getElementById('cpf-wrapper').style.display = isCPF ? '' : 'none';
-        document.getElementById('cnpj-wrapper').style.display = isCPF ? 'none' : '';
+    } else {
+      if (!cnpj || cnpj.length !== 14){ 
+        errorEl.textContent='CNPJ inválido (14 dígitos).'; 
+        errorEl.style.display='block'; 
+        return; 
+      }
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/api/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password, cpf, cnpj })
       });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        const msg = data.detail || data.error || 'Erro ao cadastrar.';
+        errorEl.textContent = msg;
+        errorEl.style.display = 'block';
+        return;
+      }
+
+      // Corrigido: backend retorna access_token
+      const token = data.access_token;
+      if (token) {
+        localStorage.setItem('authToken', token);
+        window.location.href = 'index.html';
+      } else {
+        alert('Conta criada com sucesso! Faça login para continuar.');
+        window.location.href = 'login.html';
+      }
+    } catch (err) {
+      console.error(err);
+      errorEl.textContent = 'Erro de conexão. Tente novamente.';
+      errorEl.style.display = 'block';
+    }
+  });
+
+  // Alternar CPF/CNPJ
+  document.querySelectorAll('input[name="docType"]').forEach(r=>{
+    r.addEventListener('change', (e)=>{
+      const isCPF = e.target.value === 'cpf';
+      document.getElementById('cpf-wrapper').style.display = isCPF ? '' : 'none';
+      document.getElementById('cnpj-wrapper').style.display = isCPF ? 'none' : '';
     });
+  });
   </script>
-</body>
-</html>
