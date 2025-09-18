@@ -32,52 +32,22 @@
       max-width: 550px;
       box-shadow: 0 8px 16px var(--shadow);
     }
-    .signup-header {
-      text-align: center;
-      margin-bottom: 1.5rem;
-    }
-    .signup-header img {
-      width: 80px;
-      height: auto;
-      margin-bottom: 0.5rem;
-    }
-    .signup-header h1 {
-      font-size: 1.5rem;
-      font-weight: 600;
-      color: var(--text-primary);
-    }
-    .form-label {
-      color: var(--text-primary);
-      font-weight: 500;
-    }
-    .form-control {
-      background-color: var(--bg-tertiary);
-      border: 1px solid var(--border-color);
-      color: var(--text-primary);
-    }
-    .btn-primary {
-      width: 100%;
-    }
-    .login-link {
-      margin-top: 1rem;
-      text-align: center;
-    }
-    .login-link a {
-      color: var(--primary-color);
-      text-decoration: none;
-    }
-    .error-message {
-      color: var(--danger-color);
-      margin-top: 0.5rem;
-      font-size: 0.9rem;
-    }
+    .signup-header { text-align: center; margin-bottom: 1.5rem; }
+    .signup-header img { width: 80px; height: auto; margin-bottom: 0.5rem; }
+    .signup-header h1 { font-size: 1.5rem; font-weight: 600; color: var(--text-primary); }
+    .form-label { color: var(--text-primary); font-weight: 500; }
+    .form-control { background-color: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); }
+    .btn-primary { width: 100%; }
+    .login-link { margin-top: 1rem; text-align: center; }
+    .login-link a { color: var(--primary-color); text-decoration: none; }
+    .error-message { color: var(--danger-color); margin-top: 0.5rem; font-size: 0.9rem; }
   </style>
 
-<script>
-  // Base do backend (Railway). Ajuste aqui se necessário.
-  const API_BASE = 'https://backend-pac-lead-vers-o-final-production.up.railway.app';
-  function onlyDigits(s){ return (s||'').replace(/\D+/g,''); }
-</script>
+  <script>
+    // Base do backend (Railway). Ajuste aqui se necessário.
+    const API_BASE = 'https://backend-pac-lead-vers-o-final-production.up.railway.app';
+    function onlyDigits(s){ return (s||'').replace(/\D+/g,''); }
+  </script>
 </head>
 <body>
   <div class="signup-container">
@@ -85,119 +55,134 @@
       <img src="logoprincipal.png" alt="Helsen IA">
       <h1>Criar Conta</h1>
     </div>
-    <form id="signup-form">
+
+    <form id="signup-form" novalidate>
       <div class="row g-3">
         <div class="col-md-6">
           <label for="name" class="form-label">Nome</label>
           <input type="text" class="form-control" id="name" placeholder="Seu nome completo" required>
         </div>
+
         <div class="col-md-6">
           <label for="email" class="form-label">E-mail</label>
           <input type="email" class="form-control" id="email" placeholder="seu@email.com" required>
         </div>
-        <div class="col-md-6">
-          
-  <div class="col-12">
-    <div class="d-flex gap-3 mb-2">
-      <div class="form-check">
-        <input class="form-check-input" type="radio" name="docType" id="doc-cpf" value="cpf" checked>
-        <label class="form-check-label" for="doc-cpf">Pessoa Física (CPF)</label>
-      </div>
-      <div class="form-check">
-        <input class="form-check-input" type="radio" name="docType" id="doc-cnpj" value="cnpj">
-        <label class="form-check-label" for="doc-cnpj">Pessoa Jurídica (CNPJ)</label>
-      </div>
-    </div>
-  </div>
-</div>
-<div class="col-md-6" id="cpf-wrapper">
-  <label for="cpf" class="form-label">CPF</label>
-  <input type="text" class="form-control" id="cpf" placeholder="000.000.000-00">
-</div>
-<div class="col-md-6" id="cnpj-wrapper" style="display:none;">
-  <label for="cnpj" class="form-label">CNPJ</label>
-          <input type="text" class="form-control" id="cnpj" placeholder="00.000.000/0000-00" required>
+
+        <div class="col-md-12">
+          <div class="d-flex gap-3 mb-2">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="docType" id="doc-cpf" value="cpf" checked>
+              <label class="form-check-label" for="doc-cpf">Pessoa Física (CPF)</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="docType" id="doc-cnpj" value="cnpj">
+              <label class="form-check-label" for="doc-cnpj">Pessoa Jurídica (CNPJ)</label>
+            </div>
+          </div>
         </div>
+
+        <div class="col-md-6" id="cpf-wrapper">
+          <label for="cpf" class="form-label">CPF</label>
+          <input type="text" class="form-control" id="cpf" placeholder="000.000.000-00">
+        </div>
+
+        <div class="col-md-6" id="cnpj-wrapper" style="display:none;">
+          <label for="cnpj" class="form-label">CNPJ</label>
+          <!-- sem required fixo; o required será alternado via JS -->
+          <input type="text" class="form-control" id="cnpj" placeholder="00.000.000/0000-00">
+        </div>
+
         <div class="col-12">
           <label for="password" class="form-label">Senha</label>
           <input type="password" class="form-control" id="password" placeholder="Crie uma senha" required>
         </div>
       </div>
-      <div class="error-message" id="signup-error" style="display: none;"></div>
+
+      <div class="error-message" id="signup-error" style="display:none;"></div>
       <button type="submit" class="btn btn-primary mt-3">Cadastrar</button>
     </form>
+
     <div class="login-link">
       <p>Já tem uma conta? <a href="login.html">Entrar</a></p>
     </div>
   </div>
+
   <!-- JavaScript -->
   <script>
-  document.getElementById('signup-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('signup-form');
     const errorEl = document.getElementById('signup-error');
-    errorEl.style.display = 'none';
+    const cpfInput = document.getElementById('cpf');
+    const cnpjInput = document.getElementById('cnpj');
 
-    const name = document.getElementById('name').value.trim();
-    const email = document.getElementById('email').value.trim().toLowerCase();
-    const password = document.getElementById('password').value.trim();
-
-    const docType = document.querySelector('input[name="docType"]:checked')?.value || 'cpf';
-    const cpf = docType === 'cpf' ? onlyDigits(document.getElementById('cpf').value) : null;
-    const cnpj = docType === 'cnpj' ? onlyDigits(document.getElementById('cnpj').value) : null;
-
-    // Validação
-    if (docType === 'cpf') {
-      if (!cpf || cpf.length !== 11){ 
-        errorEl.textContent='CPF inválido (11 dígitos).'; 
-        errorEl.style.display='block'; 
-        return; 
-      }
-    } else {
-      if (!cnpj || cnpj.length !== 14){ 
-        errorEl.textContent='CNPJ inválido (14 dígitos).'; 
-        errorEl.style.display='block'; 
-        return; 
-      }
-    }
-
-    try {
-      const response = await fetch(`${API_BASE}/api/auth/signup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password, cpf, cnpj })
-      });
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        const msg = data.detail || data.error || 'Erro ao cadastrar.';
-        errorEl.textContent = msg;
-        errorEl.style.display = 'block';
-        return;
-      }
-
-      // Corrigido: backend retorna access_token
-      const token = data.access_token;
-      if (token) {
-        localStorage.setItem('authToken', token);
-        window.location.href = 'index.html';
-      } else {
-        alert('Conta criada com sucesso! Faça login para continuar.');
-        window.location.href = 'login.html';
-      }
-    } catch (err) {
-      console.error(err);
-      errorEl.textContent = 'Erro de conexão. Tente novamente.';
-      errorEl.style.display = 'block';
-    }
-  });
-
-  // Alternar CPF/CNPJ
-  document.querySelectorAll('input[name="docType"]').forEach(r=>{
-    r.addEventListener('change', (e)=>{
-      const isCPF = e.target.value === 'cpf';
+    // Alternar obrigatoriedade de CPF/CNPJ
+    function toggleDocRequired() {
+      const docType = document.querySelector('input[name="docType"]:checked').value;
+      const isCPF = docType === 'cpf';
       document.getElementById('cpf-wrapper').style.display = isCPF ? '' : 'none';
       document.getElementById('cnpj-wrapper').style.display = isCPF ? 'none' : '';
+      cpfInput.required = isCPF;
+      cnpjInput.required = !isCPF;
+    }
+    document.querySelectorAll('input[name="docType"]').forEach(r => r.addEventListener('change', toggleDocRequired));
+    toggleDocRequired(); // inicial
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorEl.style.display = 'none';
+
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim().toLowerCase();
+      const password = document.getElementById('password').value.trim();
+
+      const docType = document.querySelector('input[name="docType"]:checked').value;
+      const cpf = docType === 'cpf' ? onlyDigits(cpfInput.value) : null;
+      const cnpj = docType === 'cnpj' ? onlyDigits(cnpjInput.value) : null;
+
+      // Validação simples
+      if (!name || !email || !password) {
+        errorEl.textContent = 'Preencha nome, e-mail e senha.';
+        errorEl.style.display = 'block'; return;
+      }
+      if (docType === 'cpf' && (!cpf || cpf.length !== 11)) {
+        errorEl.textContent = 'CPF inválido (11 dígitos).';
+        errorEl.style.display = 'block'; return;
+      }
+      if (docType === 'cnpj' && (!cnpj || cnpj.length !== 14)) {
+        errorEl.textContent = 'CNPJ inválido (14 dígitos).';
+        errorEl.style.display = 'block'; return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}/api/auth/signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password, cpf, cnpj })
+        });
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          const msg = data.detail || data.error || 'Erro ao cadastrar.';
+          errorEl.textContent = msg;
+          errorEl.style.display = 'block';
+          return;
+        }
+
+        const token = data.access_token;
+        if (token) {
+          localStorage.setItem('authToken', token);
+          window.location.href = 'index.html';
+        } else {
+          alert('Conta criada com sucesso! Faça login para continuar.');
+          window.location.href = 'login.html';
+        }
+      } catch (err) {
+        console.error(err);
+        errorEl.textContent = 'Erro de conexão. Tente novamente.';
+        errorEl.style.display = 'block';
+      }
     });
   });
   </script>
+</body>
+</html>
