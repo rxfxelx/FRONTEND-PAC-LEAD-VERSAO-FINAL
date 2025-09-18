@@ -8,7 +8,7 @@ const tabs = ['perfil', 'comportamento', 'conversa-ativacao'];
 // A API base será relativa ao domínio atual, permitindo que o front-end se comunique
 // com o back-end hospedado sob o mesmo domínio/porta. Ao testar localmente com
 // por exemplo http://localhost:8000, as requisições serão feitas corretamente.
-const API_BASE = '';
+const API_BASE = 'https://backend-pac-lead-vers-o-final-production.up.railway.app';
 
 // ===== DADOS DINÂMICOS =====
 // Os dados de leads, conversas, vendas etc. serão carregados por funções que
