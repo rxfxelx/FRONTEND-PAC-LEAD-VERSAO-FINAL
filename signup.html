@@ -72,6 +72,12 @@
       font-size: 0.9rem;
     }
   </style>
+
+<script>
+  // Base do backend (Railway). Ajuste aqui se necessário.
+  const API_BASE = 'https://backend-pac-lead-vers-o-final-production.up.railway.app';
+  function onlyDigits(s){ return (s||'').replace(/\D+/g,''); }
+</script>
 </head>
 <body>
   <div class="signup-container">
@@ -90,11 +96,26 @@
           <input type="email" class="form-control" id="email" placeholder="seu@email.com" required>
         </div>
         <div class="col-md-6">
-          <label for="cpf" class="form-label">CPF</label>
-          <input type="text" class="form-control" id="cpf" placeholder="000.000.000-00" required>
-        </div>
-        <div class="col-md-6">
-          <label for="cnpj" class="form-label">CNPJ</label>
+          
+  <div class="col-12">
+    <div class="d-flex gap-3 mb-2">
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="docType" id="doc-cpf" value="cpf" checked>
+        <label class="form-check-label" for="doc-cpf">Pessoa Física (CPF)</label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="docType" id="doc-cnpj" value="cnpj">
+        <label class="form-check-label" for="doc-cnpj">Pessoa Jurídica (CNPJ)</label>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="col-md-6" id="cpf-wrapper">
+  <label for="cpf" class="form-label">CPF</label>
+  <input type="text" class="form-control" id="cpf" placeholder="000.000.000-00">
+</div>
+<div class="col-md-6" id="cnpj-wrapper" style="display:none;">
+  <label for="cnpj" class="form-label">CNPJ</label>
           <input type="text" class="form-control" id="cnpj" placeholder="00.000.000/0000-00" required>
         </div>
         <div class="col-12">
@@ -113,15 +134,26 @@
   <script>
     document.getElementById('signup-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const name = document.getElementById('name').value.trim();
-      const email = document.getElementById('email').value.trim();
-      const cpf = document.getElementById('cpf').value.trim();
-      const cnpj = document.getElementById('cnpj').value.trim();
-      const password = document.getElementById('password').value.trim();
+      
+const name = document.getElementById('name').value.trim();
+const email = document.getElementById('email').value.trim();
+const docType = document.querySelector('input[name="docType"]:checked')?.value || 'cpf';
+const cpfInput = document.getElementById('cpf');
+const cnpjInput = document.getElementById('cnpj');
+const cpf = docType === 'cpf' ? onlyDigits(cpfInput.value) : null;
+const cnpj = docType === 'cnpj' ? onlyDigits(cnpjInput.value) : null;
+
+// Validação: exatamente um documento
+if (docType === 'cpf') {
+  if (!cpf || cpf.length !== 11){ errorEl.textContent='CPF inválido (11 dígitos).'; errorEl.style.display='block'; return; }
+} else {
+  if (!cnpj || cnpj.length !== 14){ errorEl.textContent='CNPJ inválido (14 dígitos).'; errorEl.style.display='block'; return; }
+}
+const password = document.getElementById('password').value.trim();
       const errorEl = document.getElementById('signup-error');
       errorEl.style.display = 'none';
       try {
-        const response = await fetch('/api/auth/signup', {
+        const response = await fetch(`${API_BASE}/api/auth/signup`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, email, cpf, cnpj, password })
@@ -148,6 +180,15 @@
         errorEl.textContent = 'Erro de conexão. Tente novamente.';
         errorEl.style.display = 'block';
       }
+    });
+  
+    // Alternar exibição CPF/CNPJ
+    document.querySelectorAll('input[name="docType"]').forEach(r=>{
+      r.addEventListener('change', (e)=>{
+        const isCPF = e.target.value === 'cpf';
+        document.getElementById('cpf-wrapper').style.display = isCPF ? '' : 'none';
+        document.getElementById('cnpj-wrapper').style.display = isCPF ? 'none' : '';
+      });
     });
   </script>
 </body>
