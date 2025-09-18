@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Helsen IA</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- AdminLTE CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css" rel="stylesheet">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Estilo da página de login usando as variáveis do tema existente */
+    body {
+      background-color: var(--bg-primary);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: 'Inter', sans-serif;
+    }
+    .login-container {
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius-lg);
+      padding: 2rem;
+      width: 100%;
+      max-width: 450px;
+      box-shadow: 0 8px 16px var(--shadow);
+    }
+    .login-header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .login-header img {
+      width: 80px;
+      height: auto;
+      margin-bottom: 0.5rem;
+    }
+    .login-header h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .form-label {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+    .form-control {
+      background-color: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+    }
+    .btn-primary {
+      width: 100%;
+    }
+    .signup-link {
+      margin-top: 1rem;
+      text-align: center;
+    }
+    .signup-link a {
+      color: var(--primary-color);
+      text-decoration: none;
+    }
+    .error-message {
+      color: var(--danger-color);
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-header">
+      <img src="logoprincipal.png" alt="Helsen IA">
+      <h1>Entrar na Plataforma</h1>
+    </div>
+    <form id="login-form">
+      <div class="mb-3">
+        <label for="email" class="form-label">E-mail</label>
+        <input type="email" class="form-control" id="email" placeholder="Digite seu e-mail" required>
+      </div>
+      <div class="mb-3">
+        <label for="password" class="form-label">Senha</label>
+        <input type="password" class="form-control" id="password" placeholder="Digite sua senha" required>
+      </div>
+      <div class="error-message" id="login-error" style="display: none;"></div>
+      <button type="submit" class="btn btn-primary">Entrar</button>
+    </form>
+    <div class="signup-link">
+      <p>Não tem uma conta? <a href="signup.html">Criar Conta</a></p>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const errorEl = document.getElementById('login-error');
+      errorEl.style.display = 'none';
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          const msg = data.detail || 'Erro ao fazer login.';
+          errorEl.textContent = msg;
+          errorEl.style.display = 'block';
+          return;
+        }
+        const data = await response.json();
+        const token = data.token;
+        if (token) {
+          localStorage.setItem('authToken', token);
+          // Redirecionar para a página principal
+          window.location.href = 'index.html';
+        } else {
+          errorEl.textContent = 'Credenciais inválidas.';
+          errorEl.style.display = 'block';
+        }
+      } catch (err) {
+        console.error(err);
+        errorEl.textContent = 'Erro de conexão. Tente novamente.';
+        errorEl.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>
