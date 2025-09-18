@@ -519,7 +519,7 @@ function loadAgentConfig() {
 // ===== CHATBOT =====
 class Chatbot {
   constructor() {
-    this.webhookUrl = BACKEND_BASE + '/api/chat';
+    this.webhookUrl = API_BASE_BASE + '/api/chat';
     this.isOpen = false;
     this.isTyping = false;
     this.sessionId = this.generateSessionId();
