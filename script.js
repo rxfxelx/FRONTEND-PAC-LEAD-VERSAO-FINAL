@@ -9,6 +9,7 @@ const tabs = ['perfil', 'comportamento', 'conversa-ativacao'];
 // com o back-end hospedado sob o mesmo domínio/porta. Ao testar localmente com
 // por exemplo http://localhost:8000, as requisições serão feitas corretamente.
 const API_BASE = 'https://backend-pac-lead-vers-o-final-production.up.railway.app';
+function onlyDigits(s){return (s||'').replace(/\D+/g,'');}
 
 // ===== DADOS DINÂMICOS =====
 // Os dados de leads, conversas, vendas etc. serão carregados por funções que
@@ -276,6 +277,20 @@ function filterTable(modalId, searchTerm) {
 }
 
 // ===== PRODUTOS =====
+
+/** Carrega produtos do backend **/
+async function fetchProducts(){
+  const token = localStorage.getItem('authToken');
+  if (!token) return;
+  try{
+    const resp = await fetch(`${API_BASE}/api/products`, { headers: { 'Authorization': `Bearer ${token}` } });
+    if(resp.ok){
+      products = await resp.json();
+      updateProductTable();
+    }
+  }catch(err){ console.error('Erro ao buscar produtos:', err); }
+}
+
 function addProduct() {
   const form = document.getElementById("product-form");
   const imgFile = form.querySelector("#product-image").files[0];
@@ -294,10 +309,29 @@ function addProduct() {
     description, image: imgFile ? URL.createObjectURL(imgFile) : null
   };
 
-  products.push(product);
-  updateProductTable();
-  form.reset();
-  showNotification("Produto adicionado com sucesso!", "success");
+  
+  // Salvar no backend
+(async()=>{
+  try{
+    const token = localStorage.getItem('authToken');
+    const resp = await fetch(`${API_BASE}/api/products`, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ name, price, category, description, image_url: product.image || null })
+    });
+    if(resp.ok){
+      const saved = await resp.json();
+      products.push(saved);
+      updateProductTable();
+      form.reset();
+      showNotification("Produto adicionado com sucesso!", "success");
+    }else{
+      const tx = await resp.text();
+      showNotification("Falha ao salvar produto: "+tx, "danger");
+    }
+  }catch(e){ console.error(e); showNotification("Erro de conexão ao salvar produto.", "danger"); }
+})();
+
 }
 function updateProductTable() {
   const tbody = document.getElementById("product-list");
@@ -410,6 +444,9 @@ function createPerformanceChart() {
 
 // ===== INICIALIZAÇÃO =====
 document.addEventListener('DOMContentLoaded', function() {
+  // Auth guard
+  if (!localStorage.getItem('authToken')) { try { if (location.pathname.endsWith('index.html') || location.pathname.endsWith('/') ) location.href='login.html'; } catch(e){} }
+
   loadAgentConfig();
   updateNavigationButtons();
   document.querySelectorAll('.nav-tabs .nav-link').forEach(tab => {
@@ -436,32 +473,47 @@ function validateAgentForm() {
 function saveAgentConfig() {
   if (!validateAgentForm()) return;
   const form = document.getElementById("agent-config-form");
-  const config = {
-    name: form.querySelector("#agent-name").value.trim(),
-    communicationStyle: form.querySelector("#communication-style").value,
-    sector: form.querySelector("#agent-sector").value,
-    profileType: form.querySelector("#agent-profile-type").value,
-    profileCustom: form.querySelector("#agent-profile-custom").value.trim()
-  };
-  localStorage.setItem("agentConfig", JSON.stringify(config));
-  showNotification("Configurações salvas com sucesso!", "success");
+
+const payload = {
+  agent_name: form.querySelector("#agent-name").value.trim(),
+  communication_style: form.querySelector("#communication-style").value,
+  sector: form.querySelector("#agent-sector").value,
+  profile_type: form.querySelector("#agent-profile-type").value,
+  description: form.querySelector("#agent-profile-custom").value.trim()
+};
+(async()=>{
+  try{
+    const token = localStorage.getItem('authToken');
+    const resp = await fetch(`${API_BASE}/api/settings/agent`, {
+      method:'PUT',
+      headers:{ 'Content-Type':'application/json','Authorization':`Bearer ${token}` },
+      body: JSON.stringify(payload)
+    });
+    if(resp.ok){ showNotification("Configurações salvas com sucesso!", "success"); }
+    else{ const tx = await resp.text(); showNotification("Falha ao salvar configurações: "+tx, "danger"); }
+  }catch(e){ console.error(e); showNotification("Erro ao salvar configurações.", "danger"); }
+})();
+
 }
 function loadAgentConfig() {
-  const savedConfig = localStorage.getItem("agentConfig");
-  if (!savedConfig) return;
-  try {
-    const config = JSON.parse(savedConfig);
+
+(async()=>{
+  try{
+    const token = localStorage.getItem('authToken');
+    const resp = await fetch(`${API_BASE}/api/settings/agent`, { headers:{ 'Authorization': `Bearer ${token}` } });
+    if(!resp.ok) return;
+    const cfg = await resp.json();
     const form = document.getElementById("agent-config-form");
     if (form) {
-      form.querySelector("#agent-name").value = config.name || "";
-      form.querySelector("#communication-style").value = config.communicationStyle || "";
-      form.querySelector("#agent-sector").value = config.sector || "";
-      form.querySelector("#agent-profile-type").value = config.profileType || "";
-      form.querySelector("#agent-profile-custom").value = config.profileCustom || "";
+      form.querySelector("#agent-name").value = cfg.agent_name || "";
+      form.querySelector("#communication-style").value = cfg.communication_style || "";
+      form.querySelector("#agent-sector").value = cfg.sector || "";
+      form.querySelector("#agent-profile-type").value = cfg.profile_type || "";
+      form.querySelector("#agent-profile-custom").value = cfg.description || "";
     }
-  } catch (error) {
-    console.error("Erro ao carregar configurações:", error);
-  }
+  }catch(e){ console.error("Erro ao carregar configurações:", e); }
+})();
+
 }
 
 // ===== CHATBOT =====
@@ -776,7 +828,46 @@ class Chatbot {
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', function() {
+  // Auth guard
+  if (!localStorage.getItem('authToken')) { try { if (location.pathname.endsWith('index.html') || location.pathname.endsWith('/') ) location.href='login.html'; } catch(e){} }
+
   updateProductTable();
   updateNavigationButtons();
   window.chatbot = new Chatbot();
 });
+
+
+// ===== WHATSAPP =====
+
+async function connectWhatsApp(){
+  const token = localStorage.getItem('authToken'); if(!token){ alert("Faça login novamente."); return; }
+  const instance = document.getElementById('wa-instance-name').value.trim() || undefined;
+  const phone = onlyDigits(document.getElementById('wa-phone').value);
+  try{
+    const resp = await fetch(`${API_BASE}/api/whatsapp/connect`, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'Authorization':`Bearer ${token}` },
+      body: JSON.stringify({ instance_name: instance, phone })
+    });
+    const data = await resp.json().catch(()=>({}));
+    if(!resp.ok){ throw new Error(data.detail || JSON.stringify(data)); }
+    if(data.qr_code){
+      const img = document.getElementById('wa-qr-image');
+      img.src = `data:image/png;base64,${data.qr_code}`;
+      document.getElementById('wa-qr-container').style.display='block';
+    }
+    document.getElementById('wa-status').textContent = JSON.stringify(data, null, 2);
+  }catch(e){
+    document.getElementById('wa-status').textContent = 'Erro: '+e.message;
+  }
+}
+async function checkWhatsAppStatus(){
+  const token = localStorage.getItem('authToken'); if(!token){ alert("Faça login novamente."); return; }
+  try{
+    const resp = await fetch(`${API_BASE}/api/whatsapp/status`, { headers:{ 'Authorization':`Bearer ${token}` } });
+    const data = await resp.json().catch(()=>({}));
+    document.getElementById('wa-status').textContent = JSON.stringify(data,null,2);
+  }catch(e){
+    document.getElementById('wa-status').textContent = 'Erro: '+e.message;
+  }
+}
